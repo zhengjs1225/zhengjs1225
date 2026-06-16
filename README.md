@@ -26,6 +26,11 @@
 
 <p align="center">
   <img src="assets/pin-ai-ops-auto.svg" alt="ai-ops-auto" width="400">
+  <img src="assets/pin-mem.svg" alt="mem" width="400">
+  <img src="assets/pin-git-skill.svg" alt="git-skill" width="400">
+  <img src="assets/pin-senior-software-architect-review.svg" alt="senior-software-architect-review" width="400">
+  <img src="assets/pin-feishu-bridge-poc.svg" alt="feishu-bridge-poc" width="400">
+  <img src="assets/pin-dingtalk-supabase.svg" alt="dingtalk-supabase" width="400">
 </p>
 
 ---
