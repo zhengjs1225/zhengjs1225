@@ -1,0 +1,38 @@
+name: Refresh Pinned Repo Cards
+
+on:
+  schedule:
+    - cron: "0 0 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Generate pin SVGs
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PIN_DEFAULT_OWNER: zhengjs1225
+          PIN_REPOS: ai-ops-auto
+        run: node scripts/generate-pin-cards.mjs
+
+      - name: Commit if changed
+        run: |
+          if git diff --quiet -- assets/pin-*.svg; then
+            echo "No changes — skipping commit."
+            exit 0
+          fi
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/pin-*.svg
+          git commit -m "chore: refresh pinned repo cards"
+          git push

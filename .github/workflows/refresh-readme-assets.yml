@@ -1,0 +1,72 @@
+name: Refresh README assets
+
+on:
+  schedule:
+    - cron: "0 0 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Fetch SVG snapshots with content validation
+        run: |
+          set -euo pipefail
+          mkdir -p assets
+
+          # Upstream dynamic SVG services occasionally return HTTP 200 with an
+          # SVG body whose only content is "ERROR!!! API rate limit ...".
+          # We must grep the body, not just trust the status code.
+          fetch_validated() {
+            local dest="$1"
+            local url="$2"
+            local tmp
+            tmp="$(mktemp)"
+            local attempt
+            for attempt in 1 2 3 4 5; do
+              if curl --fail --silent --show-error --max-time 30 -o "$tmp" "$url"; then
+                if grep -qE "(ERROR!!!|API rate limit|rate limit already exceeded)" "$tmp"; then
+                  echo "  attempt $attempt: $dest got error page, sleeping 60s..."
+                  sleep 60
+                  continue
+                fi
+                mv "$tmp" "$dest"
+                echo "  ok: $dest ($(wc -c < "$dest")B)"
+                return 0
+              fi
+              echo "  attempt $attempt: curl failed for $dest, sleeping 30s..."
+              sleep 30
+            done
+            echo "  give up: keeping previous $dest"
+            rm -f "$tmp"
+            return 0
+          }
+
+          fetch_validated assets/header.svg \
+            "https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=6,11,20&height=180&section=header&text=Hey%20%F0%9F%91%8B%2C%20I'm%20zhengjs&fontSize=36&fontColor=fff&animation=fadeIn&fontAlignY=28&desc=AI%20Ops%20Automation%20%7C%20Full-stack%20Developer&descSize=16&descAlignY=50&descAlign=50"
+
+          fetch_validated assets/footer.svg \
+            "https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=6,11,20&height=100&section=footer"
+
+          fetch_validated assets/stats.svg \
+            "https://github-profile-summary-cards.vercel.app/api/cards/stats?username=zhengjs1225&theme=radical"
+
+          fetch_validated assets/activity-graph.svg \
+            "https://github-readme-activity-graph.vercel.app/graph?username=zhengjs1225&theme=radical&area=true&hide_border=true"
+
+      - name: Commit refreshed assets if changed
+        run: |
+          if [[ -z "$(git status --porcelain assets/)" ]]; then
+            echo "No changes to commit."
+            exit 0
+          fi
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/
+          git commit -m "chore(assets): refresh README SVG snapshots"
+          git push
