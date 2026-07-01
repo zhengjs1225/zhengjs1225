@@ -27,7 +27,7 @@ jobs:
 
       - name: Commit if changed
         run: |
-          if git diff --quiet -- assets/pin-*.svg; then
+          if [ -z "$(git status --porcelain assets/pin-*.svg 2>/dev/null)" ]; then
             echo "No changes — skipping commit."
             exit 0
           fi
