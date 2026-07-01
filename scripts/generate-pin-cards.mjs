@@ -10,7 +10,7 @@ if (!GITHUB_TOKEN) {
 }
 
 const DEFAULT_OWNER = process.env.PIN_DEFAULT_OWNER || 'zhengjs1225';
-const PINS = (process.env.PIN_REPOS || 'ai-ops-auto')
+const PINS = (process.env.PIN_REPOS || 'ai-ops-auto,feishu-bridge-poc,mem,job-copilot')
   .split(',')
   .map((s) => s.trim())
   .filter(Boolean);
